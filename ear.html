@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎮 EarBender XP Tracker</title>
+  <style>
+    body {
+      background: #111;
+      color: #00ffe1;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5em;
+      text-shadow: 0 0 10px #00ffe1;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { text-shadow: 0 0 10px #00ffe1; }
+      50% { text-shadow: 0 0 20px #00ffcc; }
+    }
+    .tracker {
+      max-width: 600px;
+      margin: auto;
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px #00ffe1;
+    }
+    input, textarea {
+      width: 90%;
+      margin: 10px 0;
+      padding: 10px;
+      background: #222;
+      color: #00ffe1;
+      border: 1px solid #00ffe1;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #00ffe1;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #00ffcc;
+    }
+    .xp-bar {
+      width: 100%;
+      background: #222;
+      border-radius: 10px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    .xp-fill {
+      height: 20px;
+      width: 0%;
+      background: linear-gradient(90deg, #00ffe1, #00ff99);
+      transition: width 0.5s ease;
+    }
+    .level {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+    .achievements {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .badge {
+      background: #000;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 5px solid #00ffe1;
+      border-radius: 8px;
+      animation: pop 0.6s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 EarBender XP Tracker</h1>
+  <div class="tracker">
+    <div class="level">Level: <span id="level">1</span> - <span id="rank">Ear Rookie</span></div>
+    <div class="xp-bar">
+      <div class="xp-fill" id="xpFill"></div>
+    </div>
+    <div>Total XP: <span id="xpTotal">0</span></div>
+
+    <input type="number" id="twitchInput" placeholder="How many twitches today?">
+    <textarea id="notesInput" placeholder="Notes about today's training..."></textarea><br>
+    <button onclick="logTwitch()">Gain XP</button>
+
+    <div class="achievements">
+      <h2>🏅 Achievements Unlocked:</h2>
+      <div id="badgeList"></div>
+    </div>
+  </div>
+
+  <script>
+    let xp = parseInt(localStorage.getItem("earXP")) || 0;
+    let badges = JSON.parse(localStorage.getItem("earBadges")) || [];
+
+    const levelSpan = document.getElementById("level");
+    const xpTotalSpan = document.getElementById("xpTotal");
+    const xpFill = document.getElementById("xpFill");
+    const rankSpan = document.getElementById("rank");
+    const badgeList = document.getElementById("badgeList");
+
+    const ranks = [
+      "Ear Rookie", "Twitch Apprentice", "Vestigial Trainee",
+      "Earbender", "Auditory Assassin", "Monkey God"
+    ];
+
+    const achievements = [
+      { xp: 1, name: "👂 First Twitch" },
+      { xp: 10, name: "👂👂 Dual Ears Activated" },
+      { xp: 25, name: "⚡ Twitch Warrior" },
+      { xp: 50, name: "💀 Twitch Maniac" },
+      { xp: 100, name: "🐒 Monkey King" },
+    ];
+
+    function updateUI() {
+      xpTotalSpan.textContent = xp;
+      let level = Math.floor(xp / 10) + 1;
+      let progress = (xp % 10) * 10;
+      let rankIndex = Math.min(Math.floor(xp / 20), ranks.length - 1);
+
+      levelSpan.textContent = level;
+      rankSpan.textContent = ranks[rankIndex];
+      xpFill.style.width = progress + "%";
+    }
+
+    function unlockBadges() {
+      achievements.forEach(ach => {
+        if (xp >= ach.xp && !badges.includes(ach.name)) {
+          badges.push(ach.name);
+          let badge = document.createElement("div");
+          badge.className = "badge";
+          badge.textContent = ach.name;
+          badgeList.appendChild(badge);
+        }
+      });
+      localStorage.setItem("earBadges", JSON.stringify(badges));
+    }
+
+    function loadBadges() {
+      badges.forEach(b => {
+        let badge = document.createElement("div");
+        badge.className = "badge";
+        badge.textContent = b;
+        badgeList.appendChild(badge);
+      });
+    }
+
+    function logTwitch() {
+      const twitchInput = parseInt(document.getElementById("twitchInput").value);
+      if (!twitchInput || twitchInput < 1) return alert("Enter twitch count!");
+
+      xp += twitchInput;
+      localStorage.setItem("earXP", xp);
+      updateUI();
+      unlockBadges();
+
+      document.getElementById("twitchInput").value = "";
+      document.getElementById("notesInput").value = "";
+    }
+
+    updateUI();
+    loadBadges();
+  </script>
+</body>
+</html>
